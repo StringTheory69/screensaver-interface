@@ -1,26 +1,18 @@
 type NFT = {
     name: string
-    description: string
-    broken: boolean
+    description?: string
+    broken?: boolean
     creator: {
       id: string
     }
-    creationDate: Date
-    image: string
-    animation_url: string
-    metadataUri: string
+    creationDate?: Date
+    metadataUri?: string
     mediaUri: string
-    thumbnail: string
+    coverImageUrl?: string
     mimeType: string
-    size: string
-    media: {
-      mimeType: string
-      size: string
-    },
-    tags: string[]
+    size?: string
+    tags?: string[]
     tokenId: number
-    id: number
-
 }
 
 export type Bid = {

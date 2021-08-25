@@ -1,16 +1,15 @@
 import React from 'react'
-import ImageCard from '../ImageCard'
 import { IProps } from './types'
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { GALLERY_ABI } from '../../constants/gallery'
 import { getNetworkLibrary } from '../../connectors'
-import AccountId from '../AccountId'
 import { gql, useLazyQuery } from '@apollo/client'
-import { createOperation } from '@apollo/client/link/utils'
 import axios from 'axios'
 import NFT from '../../types'
-import NFTCardSkeleton from './'
+import reformatContractMetadataToSubgraph from '../../utils/reformatContractMetadataToSubgraph'
+import AccountId from '../AccountId'
+import ImageCard from '../ImageCard'
 
 var utils = require('ethers').utils
 
@@ -42,6 +41,7 @@ const NFTItemCard: React.FC<IProps> = ({ nft }) => {
     if (nft.broken || nft.mediaUri === null) {
       getNFTFromContract()
     } else {
+      console.log("metadata", nft)
       setSafeNFT(nft)
     }
   }, [nft])
@@ -58,45 +58,9 @@ const NFTItemCard: React.FC<IProps> = ({ nft }) => {
     console.log("URI", uri)
     if (uri.includes(undefined)) return null
     var metadata = await axios.get(uri)
-    var itemFromContract: NFT = {
-      name: "",
-      description: "",
-      broken: true,
-      creator: {
-        id: ""
-      },
-      creationDate: new Date(),
-      image: "",
-      animation_url: "",
-      metadataUri: "",
-      mediaUri: "",
-      thumbnail: "",
-      mimeType: "",
-      size: "",
-      media: {
-        mimeType: "",
-        size: ""
-      },
-      tags: [],
-      tokenId: 0,
-      id: 0
-  
-  };
-
-    console.log(metadata.data)
-    itemFromContract.name = metadata.data.name
-    itemFromContract.creator.id
-    itemFromContract.mimeType = metadata.data.media.mimeType
-    itemFromContract.tokenId = metadata.data.id
-    itemFromContract.creator.id = metadata.data.creator
-
-    if (!metadata.data.animation_url) {
-      itemFromContract.mediaUri = metadata.data.image
-    } else {
-      itemFromContract.mediaUri = metadata.data.animation_url
-    }
-
-    setSafeNFT(itemFromContract)
+    console.log("metadata 1", metadata)
+    const convertedMetadata = reformatContractMetadataToSubgraph(metadata)
+    setSafeNFT(convertedMetadata)
   }
 
   // get current bids
@@ -160,7 +124,7 @@ const NFTItemCard: React.FC<IProps> = ({ nft }) => {
   return (
     <ImageCard
       nft={safeNFT}
-      srcUrl={safeNFT.mediaUri.replace('https://ipfs.io', 'https://screensaver.mypinata.cloud')}
+      // srcUrl={safeNFT.mediaUri.replace('https://ipfs.io', 'https://screensaver.mypinata.cloud')}
       footer={
         <div className={'py-3 bg-white bg-opacity-5 font-medium px-5'}>
           <div className={'flex flex-col h-20 justify-center'}>

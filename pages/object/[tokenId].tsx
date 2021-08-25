@@ -1,126 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import { Layout } from '../../components'
 import { useRouter } from 'next/router'
-import ItemDetailView from './ItemDetailView'
+import ObjectDetailView from './ObjectDetailView'
 import axios from 'axios'
 import { ethers } from 'ethers'
 import { GALLERY_ABI } from '../../constants/gallery'
 import { getNetworkLibrary } from '../../connectors'
-// import NFT from '../../types'
 import BiddingDetailView from './BiddingDetailView'
 import BidHistory from './BidHistory'
 import Head from 'next/head'
 import Error from '../../components/Error'
-import { Web3Provider } from '@ethersproject/providers'
-import { useWeb3React } from '@web3-react/core'
-import { db, auth } from '../../config/firebase'
+import NFT from '../../types'
+import reformatContractMetadataToSubgraph from '../../utils/reformatContractMetadataToSubgraph'
 
-type NFT = {
-  name: string
-  description: string
-  creator: string
-  creationDate: Date
-  image: string
-  animation_url: string
-  metadataUri: string
-  mediaUri: string
-  mimeType: string
-  size: string
-  media: {
-    mimeType: string
-    size: string
-  },
-  tags: string[]
-  tokenId: number
-}
-
-const ReportItem = ({ report }) => {
-  return (
-    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-      <dt className="text-sm font-medium text-gray-500">{`Reported ${report.created.toDate()}`}</dt>
-      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-        {report.report}
-      </dd>
-    </div>
-  )
-}
-
-const ItemDetailPage: React.VFC = () => {
-  const { account } = useWeb3React<Web3Provider>()
+const ObjectPage: React.VFC = () => {
   const router = useRouter()
   const { tokenId, preview } = router.query
   const [uri, setUri] = useState<undefined | string>()
   const [uriError, setUriError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
   const [metadata, setMetadata] = useState<NFT | undefined>()
-  const [reports, setReports] = useState<string[]>([])
-  const [isPreview, setIsPreview] = useState(false)
-  const [ownerOf, setOwnerOf] = useState<boolean>(false)
-  const [isContractOwner, setIsContractOwner] = useState<boolean>(false)
-  const [reportStatus, setReportStatus] = useState<string>('')
-  const [isSignedIn, setIsSignedIn] = useState(false) // Local signed-in state.
-
-  useEffect(() => {
-    const unregisterAuthObserver = auth().onAuthStateChanged((user) => {
-      setIsSignedIn(!!user)
-    })
-    return () => unregisterAuthObserver()
-  }, [])
-
-  // ownerOf
-  async function checkOwnerOf() {
-    try {
-      const contract = new ethers.Contract(
-        process.env.NEXT_PUBLIC_CONTRACT_ID,
-        GALLERY_ABI,
-        getNetworkLibrary(),
-      )
-
-      var ownerOf = await contract.ownerOf(tokenId)
-      var contractOwner = await contract.owner()
-
-      const accountIsContractOwner = contractOwner === account
-
-      setIsContractOwner(accountIsContractOwner)
-
-      if (ownerOf !== account) return
-
-      setOwnerOf(true)
-    } catch (error) {
-      console.log('error')
-      setOwnerOf(false)
-    }
-  }
-
-  function getReports(tokenId) {
-    db.collection('reported')
-      .doc(tokenId)
-      .get()
-      .then((doc) => {
-        if (!doc.exists) return
-        if (!doc?.data().tickets) return
-        setReports(doc?.data().tickets)
-        if (!doc?.data().status) return
-        setReportStatus(doc?.data().status)
-      })
-  }
-
-  useEffect(() => {
-    if (!tokenId) return
-    getReports(tokenId)
-  }, [tokenId])
-
-  useEffect(() => {
-    checkOwnerOf()
-  }, [account])
 
   async function getMetadata() {
     var meta = await axios.get(uri)
-    var tempMetadata = meta.data
-    tempMetadata.metadataUri = uri
-    tempMetadata.creationDate = new Date(meta.data.creationDate).toString()
-    setMetadata(tempMetadata)
-    console.log("METADATA", tempMetadata)
+    const formattedMetadata = reformatContractMetadataToSubgraph(meta)
+    setMetadata(formattedMetadata)
   }
 
   async function getUri() {
@@ -146,17 +49,10 @@ const ItemDetailPage: React.VFC = () => {
   }, [uri])
 
   useEffect(() => {
-    console.log("METADATA", metadata)
-    if (!metadata) return
-    setLoading(false)
-  }, [metadata])
-
-  useEffect(() => {
     if (!tokenId) return
     if (!!preview) {
       // add footer
       setUri('https://screensaver.mypinata.cloud/ipfs/' + preview.toString())
-      setIsPreview(true)
     } else {
       getUri()
     }
@@ -170,7 +66,7 @@ const ItemDetailPage: React.VFC = () => {
     )
   }
 
-  if (loading)
+  if (!metadata)
     return (
       <Layout>
         <div className={'md:mt-12 pb-8 max-w-xl mx-auto'}>Loading...</div>
@@ -178,14 +74,15 @@ const ItemDetailPage: React.VFC = () => {
     )
 
   return (
-    <>
       <Layout>
+
+        {/* Head with Twitter card support */}
         <Head>
           <title>Screensaver.world | Object #{tokenId}</title>
           <meta name="title" content={metadata.name} />
           <meta name="description" content={metadata.description} />
           <meta property="og:title" content={metadata.name} />
-          <meta property="og:image" content={!!metadata.image && metadata.image.replace('https://ipfs.io', 'https://screensaver.mypinata.cloud')}/>
+          <meta property="og:image" content={!!metadata.mediaUri && metadata.mediaUri.replace('https://ipfs.io', 'https://screensaver.mypinata.cloud')}/>
           <meta property="og:description" content={metadata.description} />
           <meta
             property="og:url"
@@ -197,33 +94,29 @@ const ItemDetailPage: React.VFC = () => {
 
         <div className={'mt-12 pb-8 w-11/12 mx-auto'}>
           <div className={'md:p-3 max-w-xl mx-auto min-h-screen'}>
-            <ItemDetailView metadata={metadata} hash={preview?.toString()} />
 
-            {!preview && !!tokenId && <BiddingDetailView tokenId={tokenId} />}
+            {/* Item media and metadata */}
+            <ObjectDetailView nft={metadata} hash={preview?.toString()} />
 
-            {isSignedIn && (
+            {/* TODO: Find better way to handle previewing minting */}
+
+            {/* Only show when not in preview mode and when tokenId exists */}
+            {(!preview && !!tokenId) && 
               <>
-                <div className="bg-white shadow p-2 text-black sm:rounded-lg mt-10">
-                  {`Report Status: ${reportStatus}`}
-                </div>
+              
+                {/* Bidding Logic and Views */}
+                <BiddingDetailView tokenId={tokenId} />
+                
+                {/* Bidding History */}
+                <BidHistory tokenId={tokenId} />
 
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg mt-10">
-                  <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-                    {reports.map((report, key) => (
-                      <ReportItem report={report} key={key} />
-                    ))}
-                  </div>
-                </div>
               </>
-            )}
-
-            {!preview && <BidHistory tokenId={tokenId} />}
+            }
 
           </div>
         </div>
       </Layout>
-    </>
   )
 }
 
-export default ItemDetailPage
+export default ObjectPage
