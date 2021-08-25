@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import MediaViewer from '../../components/MediaViewer'
-import MintButton from '../../components/MintButton'
 import AccountId from '../../components/AccountId'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -13,7 +12,7 @@ interface IProps {
   hash?: string
 }
 
-const ObjectDetailView: React.VFC<IProps> = ({ nft, hash }) => {
+const ObjectDetailView: React.VFC<IProps> = ({ nft }) => {
   const router = useRouter()
   const { tokenId, preview } = router.query
   const [copied, setCopied] = useState(false)
@@ -36,8 +35,6 @@ const ObjectDetailView: React.VFC<IProps> = ({ nft, hash }) => {
             className={'absolute right-0 w-full border-t border-gray-800 '}
           />
 
-          {!!preview && <MintButton hash={hash} />}
-
           <div className={'text-4xl font-bold mt-3 mb-1 md:mt-12'}>
             {nft.name}
           </div>
@@ -58,18 +55,17 @@ const ObjectDetailView: React.VFC<IProps> = ({ nft, hash }) => {
           <div className={'w-full border-t border-gray-800'} />
 
           <div className={'text-lg py-1 mt-3 w-full flex space-x-2'}>
-            <strong>Creator: </strong>{' '}
-            <AccountId link={'created'} address={nft.creator.id} />
+            <strong>Creator: </strong>{' '} <AccountId link={'created'} address={nft.creator.id} />
           </div>
+
           <div className={'text-sm py-1'}>
-            <strong>Minted: </strong>
-            {moment(nft.creationDate).format('MMMM Do YYYY, h:mm:ss a')}
+            <strong>Minted: </strong> {moment(nft.creationDate).format('MMMM Do YYYY, h:mm:ss a')}
           </div>
+
           <div className={'text-sm py-1 flex flex-col'}>
-            <div>
               <strong>MimeType: </strong> {nft.mimeType}
-            </div>
           </div>
+
         </div>
       </div>
     </div>

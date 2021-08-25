@@ -45,27 +45,6 @@ const index: React.FC<IProps> = ({ hash }) => {
 
     goToNFT()
 
-
-    // console.log("MINTED RETURN VALUE", tx)
-
-    // let topic = ethers.utils.id('Transfer(address,address,uint256)')
-
-    // let filter = {
-    //   address: process.env.NEXT_PUBLIC_CONTRACT_ID,
-    //   topics: [topic, null, ethers.utils.hexZeroPad(account, 32)],
-    // }
-
-    // getNetworkLibrary().on(filter, (result) => {
-    //   console.log('MINTAGE', result, tx.hash)
-    //   if (result.transactionHash === tx.hash) {
-    //     goToNFT()
-    //     getNetworkLibrary().off(filter, (offResult) => {
-    //       console.log('OFF', offResult)
-    //     })
-    //   }
-    // })
-
-    console.log('URI', uri)
   }
 
   async function goToNFT() {
@@ -84,21 +63,6 @@ const index: React.FC<IProps> = ({ hash }) => {
     router.push(`/object/${parsedSupply}`)
   }
 
-  // useEffect(() => {
-  //   let topic = ethers.utils.id('Transfer(address,address,uint256)')
-
-  //   let filter = {
-  //     address: process.env.NEXT_PUBLIC_CONTRACT_ID,
-  //     topics: [topic],
-  //   }
-
-  //   return () => {
-  //     getNetworkLibrary().off(filter, (offResult) => {
-  //       console.log('OFF', offResult)
-  //     })
-  //   }
-  // }, [])
-
   return (
     <>
       <Modal
@@ -115,7 +79,7 @@ const index: React.FC<IProps> = ({ hash }) => {
               ? () => setOpen(true)
               : () => createToken(`https://ipfs.io/ipfs/${hash}`)
           }
-          className="mt-4 w-full justify-center inline-flex items-center px-6 py-3 border border-red-300 shadow-sm text-red-300 font-medium rounded-xs text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          className="mt-4 w-60 justify-center inline-flex items-center px-6 py-3 border bg-red-300 shadow font-bold text-2xl rounded-full text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
           Mint
           {loading && (

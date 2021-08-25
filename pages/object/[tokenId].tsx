@@ -12,6 +12,7 @@ import Head from 'next/head'
 import Error from '../../components/Error'
 import NFT from '../../types'
 import reformatContractMetadataToSubgraph from '../../utils/reformatContractMetadataToSubgraph'
+import MintButton from '../../components/MintButton'
 
 const ObjectPage: React.VFC = () => {
   const router = useRouter()
@@ -96,7 +97,13 @@ const ObjectPage: React.VFC = () => {
           <div className={'md:p-3 max-w-xl mx-auto min-h-screen'}>
 
             {/* Item media and metadata */}
-            <ObjectDetailView nft={metadata} hash={preview?.toString()} />
+            <ObjectDetailView nft={metadata} />
+
+            {!!preview && 
+              <div className={'fixed bottom-24 left-0 w-full flex justify-center'}>
+                <MintButton hash={preview?.toString()} />
+              </div>
+            }
 
             {/* TODO: Find better way to handle previewing minting */}
 
