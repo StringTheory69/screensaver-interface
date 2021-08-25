@@ -298,7 +298,7 @@ const SearchModal: React.VFC<IProps> = ({ open, setOpen }) => {
                                     }
                                   >
                                     <img
-                                      src={nft.thumbnail}
+                                      src={nft.coverImageUrl}
                                       className={'w-full'} 
                                     />
                                   </div>
