@@ -1,1 +1,1 @@
-Screensaver interface V0
+Screensaver interface V0 interface
